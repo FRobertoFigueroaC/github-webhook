@@ -1,9 +1,14 @@
 import { Request, Response } from 'express';
 import { GithubService } from '../services/github.service';
+import { DiscordService } from '../services/discord.service';
 
 export class GithubController {
 
-  constructor(private readonly githubService = new GithubService()){
+  constructor(
+    private readonly githubService = new GithubService(),
+    private readonly discordService = new DiscordService()
+
+  ){
 
   }
 
@@ -27,6 +32,12 @@ export class GithubController {
         break;
     }
 
-    res.status(201).json('Accepted');
+    this.discordService.notify(message)
+    .then(response => {
+      return response 
+              ? res.status(202).json('Message successfully sent to Discord')
+              : res.status(500).json('error when trying to send message to Discord');
+    })
+    .catch(error => res.status(500).json({error}))
   }
 }
